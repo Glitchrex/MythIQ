@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NewSuperstition } from '../types';
 import { Sparkles, Send, X } from 'lucide-react';
+import { Tooltip } from './Tooltip';
 
 interface Props {
   onSubmit: (superstition: NewSuperstition) => void;
@@ -49,12 +50,16 @@ export const SuperstitionForm: React.FC<Props> = ({ onSubmit, onClose }) => {
         animate={{ scale: 1, y: 0 }}
         className="glass w-full max-w-2xl rounded-[2rem] overflow-hidden relative"
       >
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all"
-        >
-          <X className="w-6 h-6" />
-        </button>
+        <div className="absolute top-6 right-6">
+          <Tooltip text="Close Form">
+            <button
+              onClick={onClose}
+              className="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </Tooltip>
+        </div>
 
         <div className="p-8 md:p-12">
           <div className="flex items-center gap-3 mb-8">

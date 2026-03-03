@@ -6,6 +6,7 @@ import { initialSuperstitions } from './data/initialSuperstitions';
 import { SuperstitionCard } from './components/SuperstitionCard';
 import { SuperstitionForm } from './components/SuperstitionForm';
 import { getMysticInsight } from './services/geminiService';
+import { Tooltip } from './components/Tooltip';
 
 export default function App() {
   const [superstitions, setSuperstitions] = useState<Superstition[]>(initialSuperstitions);
@@ -82,12 +83,14 @@ export default function App() {
             </h1>
           </div>
 
-          <button
-            onClick={() => setIsFormOpen(true)}
-            className="flex items-center gap-2 px-6 py-2 bg-orange-600 hover:bg-orange-500 text-white text-xs uppercase tracking-widest font-bold rounded-full transition-all shadow-lg shadow-orange-900/20"
-          >
-            <Plus className="w-4 h-4" /> Add New Mystery
-          </button>
+          <Tooltip text="Add New Mystery">
+            <button
+              onClick={() => setIsFormOpen(true)}
+              className="flex items-center gap-2 px-6 py-2 bg-orange-600 hover:bg-orange-500 text-white text-xs uppercase tracking-widest font-bold rounded-full transition-all shadow-lg shadow-orange-900/20"
+            >
+              <Plus className="w-4 h-4" /> Add New Mystery
+            </button>
+          </Tooltip>
         </div>
       </nav>
 
@@ -165,13 +168,14 @@ export default function App() {
 
               {/* Reset Button */}
               <div className="md:col-span-1 flex justify-center">
-                <button 
-                  onClick={() => { setSearchQuery(''); setOriginFilter('All'); setBelieverFilter('All'); }}
-                  className="p-3 text-white/40 hover:text-orange-500 transition-colors"
-                  title="Reset Filters"
-                >
-                  <Filter className="w-5 h-5" />
-                </button>
+                <Tooltip text="Reset Filters">
+                  <button 
+                    onClick={() => { setSearchQuery(''); setOriginFilter('All'); setBelieverFilter('All'); }}
+                    className="p-3 text-white/40 hover:text-orange-500 transition-colors"
+                  >
+                    <Filter className="w-5 h-5" />
+                  </button>
+                </Tooltip>
               </div>
             </div>
           </motion.div>
@@ -198,14 +202,15 @@ export default function App() {
                   
                   {/* Mystic Insight Button */}
                   <div className="absolute top-6 right-6 z-10">
-                    <button
-                      onClick={() => handleMysticInsight(s)}
-                      disabled={isInsightLoading}
-                      className="p-2 bg-orange-500/10 hover:bg-orange-500/20 rounded-full border border-orange-500/20 transition-all group"
-                      title="Get Mystic Insight (AI)"
-                    >
-                      <Wand2 className={`w-4 h-4 text-orange-500 ${isInsightLoading ? 'animate-pulse' : 'group-hover:rotate-12'}`} />
-                    </button>
+                    <Tooltip text="Get Mystic Insight (AI)">
+                      <button
+                        onClick={() => handleMysticInsight(s)}
+                        disabled={isInsightLoading}
+                        className="p-2 bg-orange-500/10 hover:bg-orange-500/20 rounded-full border border-orange-500/20 transition-all group"
+                      >
+                        <Wand2 className={`w-4 h-4 text-orange-500 ${isInsightLoading ? 'animate-pulse' : 'group-hover:rotate-12'}`} />
+                      </button>
+                    </Tooltip>
                   </div>
 
                   {/* Mystic Insight Display */}
@@ -226,12 +231,14 @@ export default function App() {
                             </p>
                           </div>
                         </div>
-                        <button 
-                          onClick={() => setMysticInsight(null)}
-                          className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors"
-                        >
-                          <Ghost className="w-4 h-4" />
-                        </button>
+                        <Tooltip text="Close Insight">
+                          <button 
+                            onClick={() => setMysticInsight(null)}
+                            className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors"
+                          >
+                            <Ghost className="w-4 h-4" />
+                          </button>
+                        </Tooltip>
                       </motion.div>
                     )}
                   </AnimatePresence>

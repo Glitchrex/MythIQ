@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Superstition } from '../types';
 import { MapPin, Users, HelpCircle, BookOpen, MessageSquare, Check, X, Share2, CheckCircle2 } from 'lucide-react';
+import { Tooltip } from './Tooltip';
 
 interface Props {
   superstition: Superstition;
@@ -96,38 +97,34 @@ export const SuperstitionCard: React.FC<Props> = ({ superstition, onVote }) => {
           {superstition.title}
         </h2>
         <div className="flex gap-2">
-          <button
-            onClick={handleShare}
-            className="p-2 text-white/40 hover:text-orange-500 hover:bg-white/5 rounded-full transition-all relative"
-            title="Share Superstition"
-          >
-            <AnimatePresence mode="wait">
-              {copied ? (
-                <motion.div
-                  key="copied"
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.5, opacity: 0 }}
-                >
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="share"
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.5, opacity: 0 }}
-                >
-                  <Share2 className="w-4 h-4" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-            {copied && (
-              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-widest text-green-500 font-bold whitespace-nowrap">
-                Copied!
-              </span>
-            )}
-          </button>
+          <Tooltip text={copied ? "Copied!" : "Share Mystery"}>
+            <button
+              onClick={handleShare}
+              className="p-2 text-white/40 hover:text-orange-500 hover:bg-white/5 rounded-full transition-all relative"
+            >
+              <AnimatePresence mode="wait">
+                {copied ? (
+                  <motion.div
+                    key="copied"
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.5, opacity: 0 }}
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="share"
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.5, opacity: 0 }}
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button>
+          </Tooltip>
           <span className="text-[10px] uppercase tracking-widest text-orange-500/60 font-semibold px-2 py-1 border border-orange-500/20 rounded-full h-fit">
             {superstition.origin}
           </span>
@@ -200,22 +197,26 @@ export const SuperstitionCard: React.FC<Props> = ({ superstition, onVote }) => {
         <div className="flex gap-3">
           {!showCommentForm ? (
             <>
-              <button
-                onClick={() => handleVote('myth')}
-                className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 hover:bg-white/5 transition-all group"
-              >
-                <X className="w-4 h-4 text-red-500/60 group-hover:text-red-500" />
-                <span className="text-xs uppercase tracking-widest font-medium">Myth</span>
-                <span className="text-[10px] text-white/30">{superstition.votes.myth}</span>
-              </button>
-              <button
-                onClick={() => handleVote('truth')}
-                className="flex items-center gap-2 px-4 py-2 rounded-full border border-orange-500/20 bg-orange-500/5 hover:bg-orange-500/10 transition-all group"
-              >
-                <Check className="w-4 h-4 text-orange-500/60 group-hover:text-orange-500" />
-                <span className="text-xs uppercase tracking-widest font-medium">Truth</span>
-                <span className="text-[10px] text-white/30">{superstition.votes.truth}</span>
-              </button>
+              <Tooltip text="Vote as Myth">
+                <button
+                  onClick={() => handleVote('myth')}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 hover:bg-white/5 transition-all group"
+                >
+                  <X className="w-4 h-4 text-red-500/60 group-hover:text-red-500" />
+                  <span className="text-xs uppercase tracking-widest font-medium">Myth</span>
+                  <span className="text-[10px] text-white/30">{superstition.votes.myth}</span>
+                </button>
+              </Tooltip>
+              <Tooltip text="Vote as Truth">
+                <button
+                  onClick={() => handleVote('truth')}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full border border-orange-500/20 bg-orange-500/5 hover:bg-orange-500/10 transition-all group"
+                >
+                  <Check className="w-4 h-4 text-orange-500/60 group-hover:text-orange-500" />
+                  <span className="text-xs uppercase tracking-widest font-medium">Truth</span>
+                  <span className="text-[10px] text-white/30">{superstition.votes.truth}</span>
+                </button>
+              </Tooltip>
             </>
           ) : (
             <motion.div
