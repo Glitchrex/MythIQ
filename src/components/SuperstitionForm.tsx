@@ -14,8 +14,8 @@ export const SuperstitionForm: React.FC<Props> = ({ onSubmit, onClose }) => {
   const [formData, setFormData] = useState<NewSuperstition>({
     title: '',
     backstory: '',
-    origin: '',
-    believers: '',
+    country: '',
+    state: '',
     reasoning: '',
     personalExperience: ''
   });
@@ -51,14 +51,12 @@ export const SuperstitionForm: React.FC<Props> = ({ onSubmit, onClose }) => {
         className="glass w-full max-w-2xl rounded-[2rem] overflow-hidden relative"
       >
         <div className="absolute top-6 right-6">
-          <Tooltip text="Close Form">
-            <button
-              onClick={onClose}
-              className="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </Tooltip>
+          <button
+            onClick={onClose}
+            className="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
         <div className="p-8 md:p-12">
@@ -93,15 +91,26 @@ export const SuperstitionForm: React.FC<Props> = ({ onSubmit, onClose }) => {
                       className="w-full bg-white/5 border-b border-white/10 p-4 text-xl text-white focus:outline-none focus:border-orange-500 transition-colors"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-widest text-orange-400/80 font-bold">Where did it originate?</label>
-                    <input
-                      required
-                      value={formData.origin}
-                      onChange={e => updateField('origin', e.target.value)}
-                      placeholder="e.g., Medieval Europe"
-                      className="w-full bg-white/5 border-b border-white/10 p-4 text-xl text-white focus:outline-none focus:border-orange-500 transition-colors"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs uppercase tracking-widest text-orange-400/80 font-bold">Country</label>
+                      <input
+                        required
+                        value={formData.country}
+                        onChange={e => updateField('country', e.target.value)}
+                        placeholder="e.g., India"
+                        className="w-full bg-white/5 border-b border-white/10 p-4 text-white focus:outline-none focus:border-orange-500 transition-colors"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs uppercase tracking-widest text-orange-400/80 font-bold">State/Region (Optional)</label>
+                      <input
+                        value={formData.state || ''}
+                        onChange={e => updateField('state', e.target.value)}
+                        placeholder="e.g., Kerala"
+                        className="w-full bg-white/5 border-b border-white/10 p-4 text-white focus:outline-none focus:border-orange-500 transition-colors"
+                      />
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -137,23 +146,15 @@ export const SuperstitionForm: React.FC<Props> = ({ onSubmit, onClose }) => {
                   className="space-y-6"
                 >
                   <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-widest text-orange-400/80 font-bold">Who believes in it & Why?</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <input
-                        required
-                        value={formData.believers}
-                        onChange={e => updateField('believers', e.target.value)}
-                        placeholder="Who follows this?"
-                        className="w-full bg-white/5 border-b border-white/10 p-4 text-white focus:outline-none focus:border-orange-500 transition-colors"
-                      />
-                      <input
-                        required
-                        value={formData.reasoning}
-                        onChange={e => updateField('reasoning', e.target.value)}
-                        placeholder="Why do they believe?"
-                        className="w-full bg-white/5 border-b border-white/10 p-4 text-white focus:outline-none focus:border-orange-500 transition-colors"
-                      />
-                    </div>
+                    <label className="text-xs uppercase tracking-widest text-orange-400/80 font-bold">Why do they believe in it?</label>
+                    <textarea
+                      required
+                      autoFocus
+                      value={formData.reasoning}
+                      onChange={e => updateField('reasoning', e.target.value)}
+                      placeholder="What is the logic or fear behind this belief?"
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-lg text-white focus:outline-none focus:border-orange-500 transition-colors min-h-[150px]"
+                    />
                   </div>
                 </motion.div>
               )}

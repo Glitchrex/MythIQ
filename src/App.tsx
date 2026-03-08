@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Ghost, Plus, Sparkles, Search, Filter, Globe, Users as UsersIcon, Wand2 } from 'lucide-react';
+import { Ghost, Plus, Sparkles, Search, Filter, Map as MapIcon, Navigation } from 'lucide-react';
 import { Superstition, NewSuperstition } from './types';
 import { initialSuperstitions } from './data/initialSuperstitions';
 import { SuperstitionCard } from './components/SuperstitionCard';
 import { SuperstitionForm } from './components/SuperstitionForm';
+import { AmbientSound } from './components/AmbientSound';
 import { getMysticInsight } from './services/geminiService';
 import { Tooltip } from './components/Tooltip';
 
@@ -12,11 +13,11 @@ export default function App() {
   const [superstitions, setSuperstitions] = useState<Superstition[]>(initialSuperstitions);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [originFilter, setOriginFilter] = useState('All');
-  const [believerFilter, setBelieverFilter] = useState('All');
+  const [countryFilter, setCountryFilter] = useState('All');
+  const [stateFilter, setStateFilter] = useState('All');
   const [scrolled, setScrolled] = useState(false);
   const [mysticInsight, setMysticInsight] = useState<{ id: string, text: string } | null>(null);
-  const [isInsightLoading, setIsInsightLoading] = useState(false);
+  const [loadingInsightId, setLoadingInsightId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -24,8 +25,8 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const origins = useMemo(() => ['All', ...new Set(superstitions.map(s => s.origin))], [superstitions]);
-  const believerTypes = ['All', 'Western', 'Asia', 'Europe', 'Global', 'Traditionalists'];
+  const countries = useMemo(() => ['All', ...new Set(superstitions.map(s => s.country))].sort(), [superstitions]);
+  const states = useMemo(() => ['All', ...new Set(superstitions.map(s => s.state || ''))].filter(s => s !== '').sort(), [superstitions]);
 
   const handleVote = (id: string, type: 'truth' | 'myth', comment?: string) => {
     setSuperstitions(prev => prev.map(s => {
@@ -53,24 +54,74 @@ export default function App() {
   };
 
   const handleMysticInsight = async (s: Superstition) => {
-    setIsInsightLoading(true);
+    if (mysticInsight?.id === s.id) {
+      setMysticInsight(null);
+      return;
+    }
+    setLoadingInsightId(s.id);
     const insight = await getMysticInsight(s.title, s.backstory);
     setMysticInsight({ id: s.id, text: insight || '' });
-    setIsInsightLoading(false);
+    setLoadingInsightId(null);
   };
 
-  const filteredSuperstitions = superstitions.filter(s => {
-    const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         s.backstory.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesOrigin = originFilter === 'All' || s.origin === originFilter;
-    const matchesBelievers = believerFilter === 'All' || s.believers.toLowerCase().includes(believerFilter.toLowerCase());
-    return matchesSearch && matchesOrigin && matchesBelievers;
-  });
+  const filteredSuperstitions = useMemo(() => {
+    return superstitions.filter(s => {
+      const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.backstory.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCountry = countryFilter === 'All' || s.country === countryFilter;
+      const matchesState = stateFilter === 'All' || s.state === stateFilter;
+      return matchesSearch && matchesCountry && matchesState;
+    });
+  }, [superstitions, searchQuery, countryFilter, stateFilter]);
+
+  const embers = useMemo(() => {
+    return [...Array(20)].map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      duration: 10 + Math.random() * 20,
+      delay: Math.random() * 20,
+      opacity: Math.random(),
+      scale: 0.5 + Math.random() * 1.5
+    }));
+  }, []);
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative text-white selection:bg-orange-500/30">
+      {/* Video Background */}
+      <div className="fixed inset-0 z-[-10] overflow-hidden video-bg-container">
+        <video
+          autoPlay
+          loop
+          className="absolute min-w-full min-h-full object-cover opacity-40 scale-110"
+        // poster="https://images.unsplash.com/photo-1542332213-31f87348057f?q=80&w=2070&auto=format&fit=crop"
+        >
+          <source src="/bonfire.mp4" type="video/mp4" />
+          {/* Video by Lay-Z Owl: https://www.pexels.com/video/a-burning-wood-2590997/ */}
+        </video>
+        {/* Dark Overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-black z-[-5]" />
+      </div>
+
       <div className="atmosphere" />
-      
+
+      {/* Floating Embers */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        {embers.map((ember) => (
+          <div
+            key={ember.id}
+            className="ember"
+            style={{
+              left: ember.left,
+              bottom: `-20px`,
+              animation: `ember-float ${ember.duration}s linear infinite`,
+              animationDelay: `${ember.delay}s`,
+              opacity: ember.opacity,
+              scale: ember.scale
+            }}
+          />
+        ))}
+      </div>
+
       {/* Navigation */}
       <nav className={`fixed top-0 left-0 w-full z-40 transition-all duration-500 px-6 py-4 ${scrolled ? 'bg-black/60 backdrop-blur-xl border-b border-white/5' : ''}`}>
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -83,14 +134,12 @@ export default function App() {
             </h1>
           </div>
 
-          <Tooltip text="Add New Mystery">
-            <button
-              onClick={() => setIsFormOpen(true)}
-              className="flex items-center gap-2 px-6 py-2 bg-orange-600 hover:bg-orange-500 text-white text-xs uppercase tracking-widest font-bold rounded-full transition-all shadow-lg shadow-orange-900/20"
-            >
-              <Plus className="w-4 h-4" /> Add New Mystery
-            </button>
-          </Tooltip>
+          <button
+            onClick={() => setIsFormOpen(true)}
+            className="flex items-center gap-2 px-6 py-2 bg-orange-600 hover:bg-orange-500 text-white text-xs uppercase tracking-widest font-bold rounded-full transition-all shadow-lg shadow-orange-900/20"
+          >
+            <Plus className="w-4 h-4" /> Add New Mystery
+          </button>
         </div>
       </nav>
 
@@ -102,15 +151,15 @@ export default function App() {
           transition={{ duration: 0.8 }}
           className="max-w-3xl mx-auto"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-orange-500/20 bg-orange-500/5 mb-6">
-            <Sparkles className="w-4 h-4 text-orange-500" />
-            <span className="text-[10px] uppercase tracking-[0.2em] text-orange-400 font-bold">The Unseen World</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-orange-500/30 bg-orange-500/10 mb-6 shadow-[0_0_15px_rgba(255,78,0,0.2)]">
+            <Sparkles className="w-4 h-4 text-orange-400 animate-pulse" />
+            <span className="text-[10px] uppercase tracking-[0.2em] text-orange-300 font-bold">The Crackling Truth</span>
           </div>
-          <h2 className="serif text-5xl md:text-7xl lg:text-8xl font-light text-white mb-8 leading-[0.9]">
-            Beliefs that <span className="italic">shape</span> our reality.
+          <h2 className="serif text-5xl md:text-7xl lg:text-8xl font-light text-white mb-8 leading-[0.9] drop-shadow-[0_0_30px_rgba(255,140,0,0.3)]">
+            Beliefs that <span className="italic text-orange-500">shape</span> our reality.
           </h2>
-          <p className="text-orange-100/40 text-lg md:text-xl font-light leading-relaxed max-w-2xl mx-auto">
-            Explore the ancient origins and hidden backstories of the world's most enduring superstitions.
+          <p className="text-orange-100/60 text-lg md:text-xl font-light leading-relaxed max-w-2xl mx-auto">
+            Gather around the digital bonfire. Explore the ancient origins and hidden backstories of the world's most enduring superstitions.
           </p>
         </motion.div>
       </header>
@@ -118,7 +167,7 @@ export default function App() {
       {/* Main Content Area with Search & Filters */}
       <main className="max-w-5xl mx-auto px-6 pb-32">
         <div className="sticky top-24 z-30 mb-12">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="glass rounded-[2rem] p-6 shadow-2xl shadow-black/50 border border-white/10"
@@ -136,46 +185,45 @@ export default function App() {
                 />
               </div>
 
-              {/* Origin Filter */}
-              <div className="md:col-span-3 relative">
-                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              {/* Country Filter */}
+              <div className="md:col-span-2 relative">
+                <MapIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                 <select
-                  value={originFilter}
-                  onChange={(e) => setOriginFilter(e.target.value)}
+                  value={countryFilter}
+                  onChange={(e) => setCountryFilter(e.target.value)}
                   className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:border-orange-500/50 transition-all cursor-pointer"
                 >
-                  <option value="All">All Origins</option>
-                  {origins.filter(o => o !== 'All').map(o => (
-                    <option key={o} value={o}>{o}</option>
+                  <option value="All">Country</option>
+                  {countries.filter(c => c !== 'All').map(c => (
+                    <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Believers Filter */}
-              <div className="md:col-span-3 relative">
-                <UsersIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              {/* State Filter */}
+              <div className="md:col-span-2 relative">
+                <Navigation className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                 <select
-                  value={believerFilter}
-                  onChange={(e) => setBelieverFilter(e.target.value)}
+                  value={stateFilter}
+                  onChange={(e) => setStateFilter(e.target.value)}
                   className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:border-orange-500/50 transition-all cursor-pointer"
                 >
-                  <option value="All">All Believers</option>
-                  {believerTypes.filter(b => b !== 'All').map(b => (
-                    <option key={b} value={b}>{b}</option>
+                  <option value="All">State</option>
+                  {states.filter(s => s !== 'All').map(s => (
+                    <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
               </div>
 
               {/* Reset Button */}
-              <div className="md:col-span-1 flex justify-center">
-                <Tooltip text="Reset Filters">
-                  <button 
-                    onClick={() => { setSearchQuery(''); setOriginFilter('All'); setBelieverFilter('All'); }}
-                    className="p-3 text-white/40 hover:text-orange-500 transition-colors"
-                  >
-                    <Filter className="w-5 h-5" />
-                  </button>
-                </Tooltip>
+              <div className="md:col-span-3 flex justify-center">
+                <button
+                  onClick={() => { setSearchQuery(''); setCountryFilter('All'); setStateFilter('All'); }}
+                  className="flex items-center gap-2 px-4 py-2 text-white/40 hover:text-orange-500 transition-colors"
+                >
+                  <Filter className="w-5 h-5" />
+                  <span className="text-xs uppercase tracking-widest font-bold">Reset</span>
+                </button>
               </div>
             </div>
           </motion.div>
@@ -198,20 +246,9 @@ export default function App() {
                   <SuperstitionCard
                     superstition={s}
                     onVote={handleVote}
+                    onMysticInsight={handleMysticInsight}
+                    isInsightLoading={loadingInsightId === s.id}
                   />
-                  
-                  {/* Mystic Insight Button */}
-                  <div className="absolute top-6 right-6 z-10">
-                    <Tooltip text="Get Mystic Insight (AI)">
-                      <button
-                        onClick={() => handleMysticInsight(s)}
-                        disabled={isInsightLoading}
-                        className="p-2 bg-orange-500/10 hover:bg-orange-500/20 rounded-full border border-orange-500/20 transition-all group"
-                      >
-                        <Wand2 className={`w-4 h-4 text-orange-500 ${isInsightLoading ? 'animate-pulse' : 'group-hover:rotate-12'}`} />
-                      </button>
-                    </Tooltip>
-                  </div>
 
                   {/* Mystic Insight Display */}
                   <AnimatePresence>
@@ -231,14 +268,12 @@ export default function App() {
                             </p>
                           </div>
                         </div>
-                        <Tooltip text="Close Insight">
-                          <button 
-                            onClick={() => setMysticInsight(null)}
-                            className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors"
-                          >
-                            <Ghost className="w-4 h-4" />
-                          </button>
-                        </Tooltip>
+                        <button
+                          onClick={() => setMysticInsight(null)}
+                          className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors"
+                        >
+                          <Ghost className="w-4 h-4" />
+                        </button>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -274,6 +309,8 @@ export default function App() {
           © {new Date().getFullYear()} Superstition Explorer • Powered by Ancient Wisdom & Modern AI
         </p>
       </footer>
+
+      <AmbientSound />
     </div>
   );
 }

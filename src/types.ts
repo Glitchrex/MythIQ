@@ -2,8 +2,8 @@ export interface Superstition {
   id: string;
   title: string;
   backstory: string;
-  origin: string;
-  believers: string;
+  country: string;
+  state?: string;
   reasoning: string;
   personalExperience?: string;
   votes: {
