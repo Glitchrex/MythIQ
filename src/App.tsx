@@ -92,10 +92,12 @@ export default function App() {
         <video
           autoPlay
           loop
+          muted
+          playsInline
           className="absolute min-w-full min-h-full object-cover opacity-40 scale-110"
         // poster="https://images.unsplash.com/photo-1542332213-31f87348057f?q=80&w=2070&auto=format&fit=crop"
         >
-          <source src="/bonfire.mp4" type="video/mp4" />
+          <source src="/video/bonfire.mp4" type="video/mp4" />
           {/* Video by Lay-Z Owl: https://www.pexels.com/video/a-burning-wood-2590997/ */}
         </video>
         {/* Dark Overlay for readability */}

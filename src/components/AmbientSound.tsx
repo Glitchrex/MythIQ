@@ -3,26 +3,24 @@ import { Volume2, VolumeX } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const AmbientSound: React.FC = () => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.3);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [volume, setVolume] = useState(0.75);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
       audioRef.current.loop = true;
+      if (isPlaying) {
+        audioRef.current.play().catch(err => console.error("Audio play failed:", err.message || err));
+      } else {
+        audioRef.current.pause();
+      }
     }
-  }, [volume]);
+  }, [volume, isPlaying]);
 
   const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch(err => console.error("Audio play failed:", err.message || err));
-      }
-      setIsPlaying(!isPlaying);
-    }
+    setIsPlaying(!isPlaying);
   };
 
   return (
@@ -34,15 +32,15 @@ export const AmbientSound: React.FC = () => {
         onError={() => console.error("Audio element error: Failed to load audio source.")}
       >
         {/* Primary local source - Ensure you upload fire.mp3 to /public/sounds/ */}
-        <source src="/sounds/fire.mp3" type="audio/mpeg" />
+        <source src="/sound/fire.mp3" type="audio/mpeg" />
         {/* Sound Effect by <a href="https://pixabay.com/users/dragon-studio-38165424/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=427410">DRAGON-STUDIO</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=427410">Pixabay</a> */}
       </audio>
 
       <button
         onClick={togglePlay}
         className={`p-3 rounded-full border transition-all duration-500 flex items-center justify-center group ${isPlaying
-            ? 'bg-orange-600 border-orange-500 shadow-[0_0_20px_rgba(255,78,0,0.4)]'
-            : 'bg-black/40 border-white/10 hover:border-orange-500/50'
+          ? 'bg-orange-600 border-orange-500 shadow-[0_0_20px_rgba(255,78,0,0.4)]'
+          : 'bg-black/40 border-white/10 hover:border-orange-500/50'
           }`}
       >
         <AnimatePresence mode="wait">
