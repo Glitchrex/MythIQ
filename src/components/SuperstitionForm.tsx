@@ -124,9 +124,8 @@ export const SuperstitionForm: React.FC<Props> = ({ onSubmit, onClose }) => {
                   className="space-y-6"
                 >
                   <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-widest text-orange-400/80 font-bold">The Backstory</label>
+                    <label className="text-xs uppercase tracking-widest text-orange-400/80 font-bold">The Backstory (Optional)</label>
                     <textarea
-                      required
                       autoFocus
                       value={formData.backstory}
                       onChange={e => updateField('backstory', e.target.value)}
@@ -190,7 +189,7 @@ export const SuperstitionForm: React.FC<Props> = ({ onSubmit, onClose }) => {
               >
                 Back
               </button>
-              
+
               <div className="flex gap-2">
                 {Array.from({ length: totalSteps }).map((_, i) => (
                   <div
