@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NewSuperstition } from '../types';
 import { Sparkles, Send, X } from 'lucide-react';
 import { Tooltip } from './Tooltip';
+import { Country, State } from 'country-state-city';
 
 interface Props {
   onSubmit: (superstition: NewSuperstition) => void;
@@ -19,6 +20,11 @@ export const SuperstitionForm: React.FC<Props> = ({ onSubmit, onClose }) => {
     reasoning: '',
     personalExperience: ''
   });
+
+  const [selectedCountryCode, setSelectedCountryCode] = useState('');
+
+  const countries = useMemo(() => Country.getAllCountries(), []);
+  const states = useMemo(() => selectedCountryCode ? State.getStatesOfCountry(selectedCountryCode) : [], [selectedCountryCode]);
 
   const totalSteps = 4;
 
@@ -93,23 +99,38 @@ export const SuperstitionForm: React.FC<Props> = ({ onSubmit, onClose }) => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs uppercase tracking-widest text-orange-400/80 font-bold">Country</label>
-                      <input
+                       <label className="text-xs uppercase tracking-widest text-orange-400/80 font-bold">Country</label>
+                      <select
                         required
-                        value={formData.country}
-                        onChange={e => updateField('country', e.target.value)}
-                        placeholder="e.g., India"
-                        className="w-full bg-white/5 border-b border-white/10 p-4 text-white focus:outline-none focus:border-orange-500 transition-colors"
-                      />
+                        value={selectedCountryCode}
+                        onChange={(e) => {
+                          const code = e.target.value;
+                          setSelectedCountryCode(code);
+                          const countryName = countries.find(c => c.isoCode === code)?.name || '';
+                          updateField('country', countryName);
+                          updateField('state', ''); // Reset state when country changes
+                        }}
+                        className="w-full bg-black/40 border-b border-white/10 p-4 text-white focus:outline-none focus:border-orange-500 transition-colors appearance-none"
+                      >
+                        <option value="" className="bg-neutral-900 text-white">Select Country</option>
+                        {countries.map(c => (
+                          <option key={c.isoCode} value={c.isoCode} className="bg-neutral-900 text-white">{c.name}</option>
+                        ))}
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs uppercase tracking-widest text-orange-400/80 font-bold">State/Region (Optional)</label>
-                      <input
+                      <select
                         value={formData.state || ''}
-                        onChange={e => updateField('state', e.target.value)}
-                        placeholder="e.g., Kerala"
-                        className="w-full bg-white/5 border-b border-white/10 p-4 text-white focus:outline-none focus:border-orange-500 transition-colors"
-                      />
+                        onChange={(e) => updateField('state', e.target.value)}
+                        disabled={!selectedCountryCode || states.length === 0}
+                        className="w-full bg-black/40 border-b border-white/10 p-4 text-white focus:outline-none focus:border-orange-500 transition-colors appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <option value="" className="bg-neutral-900 text-white">Select State</option>
+                        {states.map(s => (
+                          <option key={s.isoCode} value={s.name} className="bg-neutral-900 text-white">{s.name}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </motion.div>
@@ -145,7 +166,7 @@ export const SuperstitionForm: React.FC<Props> = ({ onSubmit, onClose }) => {
                   className="space-y-6"
                 >
                   <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-widest text-orange-400/80 font-bold">Why do they believe in it?</label>
+                    <label className="text-xs uppercase tracking-widest text-orange-400/80 font-bold">What is the popular belief?</label>
                     <textarea
                       required
                       autoFocus

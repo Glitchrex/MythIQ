@@ -6,6 +6,7 @@ import { initialSuperstitions } from './data/initialSuperstitions';
 import { SuperstitionCard } from './components/SuperstitionCard';
 import { SuperstitionForm } from './components/SuperstitionForm';
 import { AmbientSound } from './components/AmbientSound';
+import { ContactMe } from './components/ContactMe';
 import { getMysticInsight } from './services/geminiService';
 import { Tooltip } from './components/Tooltip';
 
@@ -18,6 +19,10 @@ export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [mysticInsight, setMysticInsight] = useState<{ id: string, text: string } | null>(null);
   const [loadingInsightId, setLoadingInsightId] = useState<string | null>(null);
+  const [votedIds, setVotedIds] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('votedSuperstitions');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -29,6 +34,8 @@ export default function App() {
   const states = useMemo(() => ['All', ...new Set(superstitions.map(s => s.state || ''))].filter(s => s !== '').sort(), [superstitions]);
 
   const handleVote = (id: string, type: 'truth' | 'myth', comment?: string) => {
+    if (votedIds.has(id)) return;
+
     setSuperstitions(prev => prev.map(s => {
       if (s.id === id) {
         const newVotes = { ...s.votes, [type]: s.votes[type] + 1 };
@@ -40,6 +47,12 @@ export default function App() {
       }
       return s;
     }));
+
+    setVotedIds(prev => {
+      const next = new Set(prev).add(id);
+      localStorage.setItem('votedSuperstitions', JSON.stringify([...next]));
+      return next;
+    });
   };
 
   const handleAddSuperstition = (newData: NewSuperstition) => {
@@ -71,6 +84,10 @@ export default function App() {
       const matchesCountry = countryFilter === 'All' || s.country === countryFilter;
       const matchesState = stateFilter === 'All' || s.state === stateFilter;
       return matchesSearch && matchesCountry && matchesState;
+    }).sort((a, b) => {
+      const totalA = a.votes.myth + a.votes.truth;
+      const totalB = b.votes.myth + b.votes.truth;
+      return totalB - totalA;
     });
   }, [superstitions, searchQuery, countryFilter, stateFilter]);
 
@@ -195,9 +212,9 @@ export default function App() {
                   onChange={(e) => setCountryFilter(e.target.value)}
                   className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:border-orange-500/50 transition-all cursor-pointer"
                 >
-                  <option value="All">Country</option>
+                  <option value="All" className="bg-neutral-900 text-white">Country</option>
                   {countries.filter(c => c !== 'All').map(c => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c} value={c} className="bg-neutral-900 text-white">{c}</option>
                   ))}
                 </select>
               </div>
@@ -210,9 +227,9 @@ export default function App() {
                   onChange={(e) => setStateFilter(e.target.value)}
                   className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 pl-10 pr-4 text-sm text-white appearance-none focus:outline-none focus:border-orange-500/50 transition-all cursor-pointer"
                 >
-                  <option value="All">State</option>
+                  <option value="All" className="bg-neutral-900 text-white">State</option>
                   {states.filter(s => s !== 'All').map(s => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s} value={s} className="bg-neutral-900 text-white">{s}</option>
                   ))}
                 </select>
               </div>
@@ -247,6 +264,7 @@ export default function App() {
                 >
                   <SuperstitionCard
                     superstition={s}
+                    hasVoted={votedIds.has(s.id)}
                     onVote={handleVote}
                     onMysticInsight={handleMysticInsight}
                     isInsightLoading={loadingInsightId === s.id}
@@ -313,6 +331,7 @@ export default function App() {
       </footer>
 
       <AmbientSound />
+      <ContactMe />
     </div>
   );
 }

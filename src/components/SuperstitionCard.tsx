@@ -1,22 +1,22 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Superstition } from '../types';
-import { MapPin, HelpCircle, BookOpen, MessageSquare, Check, X, Share2, CheckCircle2, Wand2 } from 'lucide-react';
+import { MapPin, HelpCircle, BookOpen, MessageSquare, Check, X } from 'lucide-react';
 import { Tooltip } from './Tooltip';
 
 interface Props {
   superstition: Superstition;
+  hasVoted: boolean;
   onVote: (id: string, type: 'truth' | 'myth', comment?: string) => void;
   onMysticInsight: (s: Superstition) => void;
   isInsightLoading: boolean;
 }
 
-export const SuperstitionCard: React.FC<Props> = ({ superstition, onVote, onMysticInsight, isInsightLoading }) => {
+export const SuperstitionCard: React.FC<Props> = ({ superstition, hasVoted, onVote, onMysticInsight, isInsightLoading }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [voteType, setVoteType] = useState<'truth' | 'myth' | null>(null);
   const [comment, setComment] = useState('');
   const [showCommentForm, setShowCommentForm] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const anim = useMemo(() => ({
     swayDuration: 6 + Math.random() * 6,
@@ -29,17 +29,6 @@ export const SuperstitionCard: React.FC<Props> = ({ superstition, onVote, onMyst
   const handleVote = (type: 'truth' | 'myth') => {
     setVoteType(type);
     setShowCommentForm(true);
-  };
-
-  const handleShare = async () => {
-    const shareText = `🔮 Superstition Explorer: ${superstition.title}\n\n"${superstition.backstory}"\n\nExplore more mysteries: ${window.location.href}`;
-    try {
-      await navigator.clipboard.writeText(shareText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy: ', err);
-    }
   };
 
   const submitVote = () => {
@@ -110,47 +99,6 @@ export const SuperstitionCard: React.FC<Props> = ({ superstition, onVote, onMyst
               </span>
             )}
           </div>
-        </div>
-        
-        <div className="flex gap-3 items-center self-end md:self-center">
-          <Tooltip text="Mystic Insight">
-            <button
-              onClick={() => onMysticInsight(superstition)}
-              disabled={isInsightLoading}
-              className="p-2 bg-orange-500/10 hover:bg-orange-500/20 rounded-full border border-orange-500/20 transition-all group"
-            >
-              <Wand2 className={`w-4 h-4 text-orange-500 ${isInsightLoading ? 'animate-pulse' : 'group-hover:rotate-12'}`} />
-            </button>
-          </Tooltip>
-
-          <Tooltip text="Share Mystery">
-            <button
-              onClick={handleShare}
-              className="p-2 text-white/40 hover:text-orange-500 hover:bg-white/5 rounded-full transition-all relative"
-            >
-              <AnimatePresence mode="wait">
-                {copied ? (
-                  <motion.div
-                    key="copied"
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.5, opacity: 0 }}
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="share"
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.5, opacity: 0 }}
-                  >
-                    <Share2 className="w-4 h-4" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </button>
-          </Tooltip>
         </div>
       </div>
 
@@ -234,18 +182,24 @@ export const SuperstitionCard: React.FC<Props> = ({ superstition, onVote, onMyst
           {!showCommentForm ? (
             <>
               <button
-                onClick={() => handleVote('myth')}
-                className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 hover:bg-white/5 transition-all group"
+                onClick={() => !hasVoted && handleVote('myth')}
+                disabled={hasVoted}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 transition-all ${
+                  hasVoted ? 'opacity-50 cursor-not-allowed bg-white/5' : 'hover:bg-white/5 group'
+                }`}
               >
-                <X className="w-4 h-4 text-red-500/60 group-hover:text-red-500" />
+                <X className={`w-4 h-4 ${hasVoted ? 'text-red-500/40' : 'text-red-500/60 group-hover:text-red-500'}`} />
                 <span className="text-xs uppercase tracking-widest font-medium">Myth</span>
                 <span className="text-[10px] text-white/30">{superstition.votes.myth}</span>
               </button>
               <button
-                onClick={() => handleVote('truth')}
-                className="flex items-center gap-2 px-4 py-2 rounded-full border border-orange-500/20 bg-orange-500/5 hover:bg-orange-500/10 transition-all group"
+                onClick={() => !hasVoted && handleVote('truth')}
+                disabled={hasVoted}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full border border-orange-500/20 transition-all ${
+                  hasVoted ? 'opacity-50 cursor-not-allowed bg-orange-500/5' : 'bg-orange-500/5 hover:bg-orange-500/10 group'
+                }`}
               >
-                <Check className="w-4 h-4 text-orange-500/60 group-hover:text-orange-500" />
+                <Check className={`w-4 h-4 ${hasVoted ? 'text-orange-500/40' : 'text-orange-500/60 group-hover:text-orange-500'}`} />
                 <span className="text-xs uppercase tracking-widest font-medium">Truth</span>
                 <span className="text-[10px] text-white/30">{superstition.votes.truth}</span>
               </button>
